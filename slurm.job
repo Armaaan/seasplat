@@ -14,6 +14,12 @@ echo "Host: $(hostname)"
 echo "Job ID: ${SLURM_JOB_ID:-no_slurm_job_id}"
 echo "========================================"
 
+
+echo "Loading modules..."
+module avail Anaconda3
+module spider Anaconda3
+
+
 module load Anaconda3/2023.07-2
 module load CUDA/12.1.1
 eval "$(conda shell.bash hook)"
