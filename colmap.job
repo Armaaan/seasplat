@@ -7,7 +7,6 @@
 
 set -euo pipefail
 
-module purge
 module load Anaconda3/2023.07-2 || { echo "Failed to load Anaconda"; exit 1; }
 module load CUDA/12.1.1
 
