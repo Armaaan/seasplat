@@ -23,7 +23,7 @@ set -u
 conda tos accept --channel https://repo.anaconda.com/pkgs/main
 conda tos accept --channel https://repo.anaconda.com/pkgs/r
 
-conda install -c conda-forge colmap -y
+# conda install -c conda-forge colmap -y
 
 cd /home/arua/projects/3dgs/seasplat
 mkdir -p logs
@@ -40,13 +40,13 @@ UNDISTORTED_PATH="${SOURCE_PATH}/undistorted"
 
 
 # Run Undistorter - This fixes the 'AssertionError'
-colmap image_undistorter \
-    --image_path "${SOURCE_PATH}/images" \
-    --input_path "${SOURCE_PATH}/sparse/0" \
-    --output_path "$UNDISTORTED_PATH" \
-    --output_type COLMAP
+# colmap image_undistorter \
+#     --image_path "${SOURCE_PATH}/images" \
+#     --input_path "${SOURCE_PATH}/sparse/0" \
+#     --output_path "$UNDISTORTED_PATH" \
+#     --output_type COLMAP
 
-echo "--- Undistortion Done ---"
+# echo "--- Undistortion Done ---"
 
 colmap model_converter \
     --input_path "${UNDISTORTED_PATH}/sparse/0" \
