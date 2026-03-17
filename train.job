@@ -29,11 +29,11 @@ print("Torch CUDA:", torch.version.cuda)
 print("CUDA available:", torch.cuda.is_available())
 PY
 
-# DATASET (Curacao)
-DATASET_PATH="/home/arua/projects/3dgs/datasets/SeathruNeRF_dataset/Curacao"
+# DATASET (Curasao)
+DATASET_PATH="/home/arua/projects/3dgs/datasets/SeathruNeRF_dataset/Curasao"
 
 # EXPERIMENT NAME
-EXPERIMENT_NAME="curacao_run"
+EXPERIMENT_NAME="curasao_run"
 
 echo "Dataset path: ${DATASET_PATH}"
 echo "Experiment name: ${EXPERIMENT_NAME}"
