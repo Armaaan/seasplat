@@ -2,7 +2,7 @@
 #SBATCH --job-name=colmap
 #SBATCH --output=logs/colmap_%j.out
 #SBATCH --cpus-per-task=8
-#SBATCH --nodelist=cn[3-7,12-13,18]
+#SBATCH --nodelist=cn15
 #SBATCH --partition=acltr
 #SBATCH --time=24:00:00
 
