@@ -15,6 +15,8 @@ module load CUDA/12.1.1
 eval "$(conda shell.bash hook)"
 conda activate seasplat
 
+conda install -c conda-forge colmap -y
+
 cd /home/arua/projects/3dgs/seasplat
 mkdir -p logs
 
