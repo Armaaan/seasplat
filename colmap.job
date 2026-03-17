@@ -7,44 +7,47 @@
 
 set -euo pipefail
 
-module load Anaconda3/2023.07-2
-module load CUDA/12.1.1
+module spider Anaconda3/2023.07-2
 
-eval "$(conda shell.bash hook)"
-conda activate seasplat
+# module purge
+# module load Anaconda3/2023.07-2
+# module load CUDA/12.1.1
 
-conda install -c conda-forge colmap -y
+# eval "$(conda shell.bash hook)"
+# conda activate seasplat
 
-cd /home/arua/projects/3dgs/seasplat
-mkdir -p logs
+# conda install -c conda-forge colmap -y
 
-echo "Python: $(which python)"
-echo "Pip: $(which pip)"
-python --version
+# cd /home/arua/projects/3dgs/seasplat
+# mkdir -p logs
 
-python - <<'PY'
-import torch
-print("Torch version:", torch.__version__)
-print("Torch CUDA:", torch.version.cuda)
-print("CUDA available:", torch.cuda.is_available())
-PY
+# echo "Python: $(which python)"
+# echo "Pip: $(which pip)"
+# python --version
 
-# DATASET (Curasao)
-DATASET_PATH="/home/arua/projects/3dgs/datasets/SeathruNeRF_dataset/Curasao"
+# python - <<'PY'
+# import torch
+# print("Torch version:", torch.__version__)
+# print("Torch CUDA:", torch.version.cuda)
+# print("CUDA available:", torch.cuda.is_available())
+# PY
 
-# EXPERIMENT NAME
-EXPERIMENT_NAME="curasao_run"
+# # DATASET (Curasao)
+# DATASET_PATH="/home/arua/projects/3dgs/datasets/SeathruNeRF_dataset/Curasao"
 
-echo "Dataset path: ${DATASET_PATH}"
-echo "Experiment name: ${EXPERIMENT_NAME}"
+# # EXPERIMENT NAME
+# EXPERIMENT_NAME="curasao_run"
 
-test -d "${DATASET_PATH}" || { echo "Dataset path does not exist: ${DATASET_PATH}"; exit 1; }
-test -d "${DATASET_PATH}/images" || { echo "Missing ${DATASET_PATH}/images"; exit 1; }
-test -d "${DATASET_PATH}/sparse/0" || { echo "Missing ${DATASET_PATH}/sparse/0"; exit 1; }
+# echo "Dataset path: ${DATASET_PATH}"
+# echo "Experiment name: ${EXPERIMENT_NAME}"
+
+# test -d "${DATASET_PATH}" || { echo "Dataset path does not exist: ${DATASET_PATH}"; exit 1; }
+# test -d "${DATASET_PATH}/images" || { echo "Missing ${DATASET_PATH}/images"; exit 1; }
+# test -d "${DATASET_PATH}/sparse/0" || { echo "Missing ${DATASET_PATH}/sparse/0"; exit 1; }
 
 
 
-colmap model_converter \
-    --input_path /home/arua/projects/3dgs/datasets/SeathruNeRF_dataset/Curasao/sparse/0 \
-    --output_path /home/arua/projects/3dgs/datasets/
-    --output_type TXT
+# colmap model_converter \
+#     --input_path /home/arua/projects/3dgs/datasets/SeathruNeRF_dataset/Curasao/sparse/0 \
+#     --output_path /home/arua/projects/3dgs/datasets/
+#     --output_type TXT
