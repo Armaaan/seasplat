@@ -5,7 +5,7 @@
 #SBATCH --gres=gpu:rtx2070:1
 #SBATCH --nodelist=desktop[1]
 #SBATCH --time=24:00:00
-#SBATCH --partition=acltr
+#SBATCH --partition=dgpu
 
 set -euo pipefail
 
