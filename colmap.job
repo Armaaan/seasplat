@@ -8,7 +8,7 @@
 set -euo pipefail
 
 module purge
-module load Anaconda3/2023.07-2
+module load Anaconda3/2023.07-2 || { echo "Failed to load Anaconda"; exit 1; }
 module load CUDA/12.1.1
 
 eval "$(conda shell.bash hook)"
@@ -47,5 +47,5 @@ test -d "${DATASET_PATH}/sparse/0" || { echo "Missing ${DATASET_PATH}/sparse/0";
 
 colmap model_converter \
     --input_path /home/arua/projects/3dgs/datasets/SeathruNeRF_dataset/Curasao/sparse/0 \
-    --output_path /home/arua/projects/3dgs/datasets/
+    --output_path /home/arua/projects/3dgs/datasets/ \
     --output_type TXT
