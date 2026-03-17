@@ -2,7 +2,7 @@
 #SBATCH --job-name=colmap
 #SBATCH --output=logs/colmap_%j.out
 #SBATCH --cpus-per-task=8
-#SBATCH --gres=gpu:rtx2070:
+#SBATCH --gres=gpu:rtx2070:1
 #SBATCH --time=24:00:00
 #SBATCH --partition=acltr
 
