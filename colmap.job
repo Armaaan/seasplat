@@ -37,7 +37,7 @@ PY
 # Paths
 SOURCE_PATH="/home/arua/projects/3dgs/datasets/SeathruNeRF_dataset/Curasao"
 UNDISTORTED_PATH="${SOURCE_PATH}/undistorted"
-UNDISTORTED_SPARSE="${UNDISTORTED_PATH}/sparse"
+UNDISTORTED_SPARSE="${UNDISTORTED_PATH}/sparse/0"
 
 
 # Run Undistorter - This fixes the 'AssertionError'
