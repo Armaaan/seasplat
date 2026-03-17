@@ -31,9 +31,11 @@ conda activate seasplat
 
 # present working directory
 echo "Current working directory: $(pwd)"
-
-pip install submodules/diff-gaussian-rasterization
-pip install submodules/simple-knn
+cd submodules/diff-gaussian-rasterization
+pip install -e .
+cd ../simple-knn
+pip install -e .
+cd ../..
 
 echo "========================================"
 echo "Job finished at: $(date)"
