@@ -50,8 +50,3 @@ colmap image_undistorter \
 
 echo "--- Undistortion Done ---"
 
-
-colmap model_converter \
-    --input_path /home/arua/projects/3dgs/datasets/SeathruNeRF_dataset/Curasao/sparse/0 \
-    --output_path /home/arua/projects/3dgs/datasets/
-    --output_type TXT
