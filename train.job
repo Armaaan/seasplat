@@ -53,6 +53,9 @@ pip install -e . --no-build-isolation
 
 cd ../..
 
+python -c "import simple_knn; from simple_knn._C import distCUDA2; print('simple_knn OK')"
+python -c "from diff_gaussian_rasterization import GaussianRasterizationSettings; print('rasterizer OK')"
+
 python train.py \
   -s ${DATASET_PATH} \
   --exp ${EXPERIMENT_NAME} \
