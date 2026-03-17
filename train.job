@@ -44,10 +44,7 @@ test -d "${DATASET_PATH}/sparse/0" || { echo "Missing ${DATASET_PATH}/sparse/0";
 
 
 
-python -c "import simple_knn; from simple_knn._C import distCUDA2; print('simple_knn OK')"
-python -c "from diff_gaussian_rasterization import GaussianRasterizationSettings; print('rasterizer OK')"
-
-# python train.py \
-#   -s ${DATASET_PATH} \
-#   --exp ${EXPERIMENT_NAME} \
-#   --do_seathru --seathru_from_iter 10000
+python train.py \
+  -s ${DATASET_PATH} \
+  --exp ${EXPERIMENT_NAME} \
+  --do_seathru --seathru_from_iter 10000
