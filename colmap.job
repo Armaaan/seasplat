@@ -20,7 +20,9 @@ eval "$(conda shell.bash hook)"
 conda activate seasplat
 set -u
 
-# Optional: once this runs successfully, you can comment this out next time
+conda tos accept --channel https://repo.anaconda.com/pkgs/main
+conda tos accept --channel https://repo.anaconda.com/pkgs/r
+
 conda install -c conda-forge colmap -y
 
 cd /home/arua/projects/3dgs/seasplat
