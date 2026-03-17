@@ -31,24 +31,18 @@ print("CUDA available:", torch.cuda.is_available())
 PY
 
 # DATASET (Curasao)
-SOURCE_PATH="/home/arua/projects/3dgs/datasets/SeathruNeRF_dataset/Curasao"
-UNDISTORTED_PATH="${SOURCE_PATH}/undistorted"
+DATASET_PATH="/home/arua/projects/3dgs/datasets/SeathruNeRF_dataset/Curasao"
 
 # EXPERIMENT NAME
 EXPERIMENT_NAME="curasao_run"
 
-echo "Source path: ${SOURCE_PATH}"
-echo "Undistorted path: ${UNDISTORTED_PATH}"
+echo "Dataset path: ${DATASET_PATH}"
 echo "Experiment name: ${EXPERIMENT_NAME}"
 
-# This converts any camera model to PINHOLE and generates new images
-colmap image_undistorter \
-    --image_path "${SOURCE_PATH}/images" \
-    --input_path "${SOURCE_PATH}/sparse/0" \
-    --output_path "$UNDISTORTED_PATH" \
-    --output_type COLMAP
+test -d "${DATASET_PATH}" || { echo "Dataset path does not exist: ${DATASET_PATH}"; exit 1; }
+test -d "${DATASET_PATH}/images" || { echo "Missing ${DATASET_PATH}/images"; exit 1; }
+test -d "${DATASET_PATH}/sparse/0" || { echo "Missing ${DATASET_PATH}/sparse/0"; exit 1; }
 
-echo "--- Undistortion Done ---"
 
 
 colmap model_converter \
