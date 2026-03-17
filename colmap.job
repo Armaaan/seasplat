@@ -2,12 +2,14 @@
 #SBATCH --job-name=colmap
 #SBATCH --output=logs/colmap_%j.out
 #SBATCH --cpus-per-task=8
-#SBATCH --gres=gpu:rtx2070:1
+#SBATCH --gres=gpu:a30:1
 #SBATCH --time=24:00:00
+#SBATCH --partition=acltr
 
 set -euo pipefail
 
-module load Anaconda3/2023.07-2 || { echo "Failed to load Anaconda"; exit 1; }
+module purge
+module load Anaconda3/2023.07-2
 module load CUDA/12.1.1
 
 eval "$(conda shell.bash hook)"
@@ -46,5 +48,5 @@ test -d "${DATASET_PATH}/sparse/0" || { echo "Missing ${DATASET_PATH}/sparse/0";
 
 colmap model_converter \
     --input_path /home/arua/projects/3dgs/datasets/SeathruNeRF_dataset/Curasao/sparse/0 \
-    --output_path /home/arua/projects/3dgs/datasets/ \
+    --output_path /home/arua/projects/3dgs/datasets/
     --output_type TXT
