@@ -42,6 +42,17 @@ test -d "${DATASET_PATH}" || { echo "Dataset path does not exist: ${DATASET_PATH
 test -d "${DATASET_PATH}/images" || { echo "Missing ${DATASET_PATH}/images"; exit 1; }
 test -d "${DATASET_PATH}/sparse/0" || { echo "Missing ${DATASET_PATH}/sparse/0"; exit 1; }
 
+
+cd /home/arua/projects/3dgs/seasplat
+
+cd submodules/diff-gaussian-rasterization
+pip install -e . --no-build-isolation
+
+cd ../simple-knn
+pip install -e . --no-build-isolation
+
+cd ../..
+
 python train.py \
   -s ${DATASET_PATH} \
   --exp ${EXPERIMENT_NAME} \
