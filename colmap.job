@@ -11,42 +11,33 @@
 set -euo pipefail
 
 module purge
-module load Anaconda3
 module load CUDA/12.1.1
+module load Anaconda3/2023.07-2
 
+# FIX: Temporarily disable nounset (-u) so Conda can load without crashing
 set +u
 eval "$(conda shell.bash hook)"
 conda activate seasplat
 set -u
 
+# Optional: once this runs successfully, you can comment this out next time
 conda install -c conda-forge colmap -y
 
 cd /home/arua/projects/3dgs/seasplat
 mkdir -p logs
 
-echo "Python: $(which python)"
-echo "Pip: $(which pip)"
-python --version
-
+# Sanity checks
 python - <<'PY'
 import torch
-print("Torch version:", torch.__version__)
-print("Torch CUDA:", torch.version.cuda)
-print("CUDA available:", torch.cuda.is_available())
+print(f"CUDA available: {torch.cuda.is_available()}")
 PY
 
-# DATASET (Curasao)
+# Paths
 SOURCE_PATH="/home/arua/projects/3dgs/datasets/SeathruNeRF_dataset/Curasao"
 UNDISTORTED_PATH="${SOURCE_PATH}/undistorted"
 
-# EXPERIMENT NAME
-EXPERIMENT_NAME="curasao_run"
 
-echo "Source path: ${SOURCE_PATH}"
-echo "Undistorted path: ${UNDISTORTED_PATH}"
-echo "Experiment name: ${EXPERIMENT_NAME}"
-
-# This converts any camera model to PINHOLE and generates new images
+# Run Undistorter - This fixes the 'AssertionError'
 colmap image_undistorter \
     --image_path "${SOURCE_PATH}/images" \
     --input_path "${SOURCE_PATH}/sparse/0" \
@@ -55,3 +46,8 @@ colmap image_undistorter \
 
 echo "--- Undistortion Done ---"
 
+
+python train.py \
+    -s "$UNDISTORTED_PATH" \
+    --exp "colmap_undistorted" \
+    --do_seathru --seathru_from_iter 10000
