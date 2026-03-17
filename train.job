@@ -2,7 +2,6 @@
 #SBATCH --job-name=seasplat_train
 #SBATCH --cpus-per-task=8
 #SBATCH --nodelist=cn[6]
-#SBATCH --time=24:00:00
 #SBATCH --output=seasplat_%j.log
 #SBATCH --partition=acltr
 
