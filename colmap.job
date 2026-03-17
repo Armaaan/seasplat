@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --job-name=seasplat_train
-#SBATCH --output=logs/seasplat_%j.log
+#SBATCH --job-name=colmap
+#SBATCH --output=logs/colmap_%j.out
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
