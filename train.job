@@ -43,20 +43,11 @@ test -d "${DATASET_PATH}/images" || { echo "Missing ${DATASET_PATH}/images"; exi
 test -d "${DATASET_PATH}/sparse/0" || { echo "Missing ${DATASET_PATH}/sparse/0"; exit 1; }
 
 
-python -m pip uninstall -y simple_knn diff_gaussian_rasterization
-
-rm -rf submodules/simple-knn/build
-rm -rf submodules/simple-knn/*.egg-info
-rm -rf submodules/diff-gaussian-rasterization/build
-rm -rf submodules/diff-gaussian-rasterization/*.egg-info
-
-python -m pip install --no-build-isolation submodules/simple-knn
-python -m pip install --no-build-isolation submodules/diff-gaussian-rasterization
 
 python -c "import simple_knn; from simple_knn._C import distCUDA2; print('simple_knn OK')"
 python -c "from diff_gaussian_rasterization import GaussianRasterizationSettings; print('rasterizer OK')"
 
-python train.py \
-  -s ${DATASET_PATH} \
-  --exp ${EXPERIMENT_NAME} \
-  --do_seathru --seathru_from_iter 10000
+# python train.py \
+#   -s ${DATASET_PATH} \
+#   --exp ${EXPERIMENT_NAME} \
+#   --do_seathru --seathru_from_iter 10000
