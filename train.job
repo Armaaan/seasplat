@@ -1,47 +1,27 @@
 #!/bin/bash
-#SBATCH --job-name=seasplat-env-update
-#SBATCH --output=logs/env_update_%j.out
-#SBATCH --cpus-per-task=4
+#SBATCH --job-name=seasplat-train
+#SBATCH --output=logs/seasplat_train_%j.out
+#SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:a100_80gb:1
-#SBATCH --time=02:00:00
+#SBATCH --time=24:00:00
 #SBATCH --partition=acltr
 
 set -euo pipefail
 
-echo "========================================"
-echo "Env update started at: $(date)"
-echo "Host: $(hostname)"
-echo "Job ID: ${SLURM_JOB_ID:-no_slurm_job_id}"
-echo "========================================"
-
-# Clean module environment
 module purge
-
-# Load required modules
 module load Anaconda3/2023.07-2
 module load CUDA/12.1.1
 
-# Init conda
 eval "$(conda shell.bash hook)"
-
-# Activate env
 conda activate seasplat
 
-echo "Using Python: $(which python)"
-echo "Using Pip: $(which pip)"
+cd /home/arua/projects/3dgs/seasplat
+mkdir -p logs
+
+echo "Python: $(which python)"
+echo "Pip: $(which pip)"
 python --version
 
-echo "========================================"
-echo "Step 1: Fix PyTorch (CUDA 12.1)"
-echo "========================================"
-
-pip uninstall -y torch torchvision torchaudio || true
-pip cache purge
-
-pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 \
-  --index-url https://download.pytorch.org/whl/cu121
-
-echo "Verifying torch..."
 python - <<'PY'
 import torch
 print("Torch version:", torch.__version__)
@@ -49,27 +29,20 @@ print("Torch CUDA:", torch.version.cuda)
 print("CUDA available:", torch.cuda.is_available())
 PY
 
-echo "========================================"
-echo "Step 2: Install build tools"
-echo "========================================"
+# DATASET (Curacao)
+DATASET_PATH="/home/arua/projects/3dgs/datasets/SeathruNeRF_dataset/Curacao"
 
-pip install --upgrade pip
-pip install ninja setuptools wheel
+# EXPERIMENT NAME
+EXPERIMENT_NAME="curacao_run"
 
-echo "========================================"
-echo "Step 3: Build submodules"
-echo "========================================"
+echo "Dataset path: ${DATASET_PATH}"
+echo "Experiment name: ${EXPERIMENT_NAME}"
 
-cd /home/arua/projects/3dgs/seasplat
+test -d "${DATASET_PATH}" || { echo "Dataset path does not exist: ${DATASET_PATH}"; exit 1; }
+test -d "${DATASET_PATH}/images" || { echo "Missing ${DATASET_PATH}/images"; exit 1; }
+test -d "${DATASET_PATH}/sparse/0" || { echo "Missing ${DATASET_PATH}/sparse/0"; exit 1; }
 
-cd submodules/diff-gaussian-rasterization
-pip install -e . --no-build-isolation
-
-cd ../simple-knn
-pip install -e . --no-build-isolation
-
-cd ../..
-
-echo "========================================"
-echo "Env update finished at: $(date)"
-echo "========================================"
+python train.py \
+  -s ${DATASET_PATH} \
+  --exp ${EXPERIMENT_NAME} \
+  --do_seathru --seathru_from_iter 10000
