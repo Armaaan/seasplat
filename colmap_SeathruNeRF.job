@@ -2,7 +2,7 @@
 #SBATCH --job-name=seathruNeRF_colmap
 #SBATCH --output=logs/seathruNeRF_%j.out
 #SBATCH --cpus-per-task=8
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:v100:3
 #SBATCH --mem=128G
 #SBATCH --partition=scavenge
 #SBATCH --time=24:00:00
