@@ -3,6 +3,7 @@
 #SBATCH --output=logs/submerged3d_%j.out
 #SBATCH --cpus-per-task=16
 #SBATCH --gres=gpu:1
+#SBATCH --partition=acltr
 #SBATCH --time=24:00:00
 
 module purge
@@ -65,19 +66,19 @@ conda activate seasplat
 SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/Submerged3D"
 SCENES=("Cormoran" "Isro" "Kwaj" "Tokai")
 
-
 for SCENE in "${SCENES[@]}"; do
     echo "======================================"
     echo "Training scene: $SCENE"
     echo "======================================"
 
-    DATASET_PATH="$SOURCE_PATH/$SCENE"
+    DATASET_PATH="$SOURCE_PATH/$SCENE/dense"
     EXP_NAME="${SCENE}_seasplat"
 
     python train.py \
         -s "$DATASET_PATH" \
         --exp "$EXP_NAME" \
-        --do_seathru --seathru_from_iter 10000
+        --do_seathru \
+        --seathru_from_iter 10000
 
     echo "✅ Finished $SCENE"
 done
