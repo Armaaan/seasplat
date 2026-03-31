@@ -3,9 +3,8 @@
 #SBATCH --output=logs/submerged3d_%j.out
 #SBATCH --error=logs/submerged3d_%j.err
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=64G
+#SBATCH --gres=gpu:1
 #SBATCH --time=24:00:00
-#SBATCH --partition=acltr
 
 RAW_BASE="/home/arua/projects/3dgs/datasets/raw/Submerged3D"
 OUT_BASE="/home/arua/projects/3dgs/datasets/prepared/Submerged3D"
