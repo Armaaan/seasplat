@@ -13,57 +13,74 @@ module load CUDA/12.1.1
 eval "$(conda shell.bash hook)"
 conda activate seasplat
 
-# RAW_BASE="/home/arua/projects/3dgs/datasets/raw/Submerged3D"
-# OUT_BASE="/home/arua/projects/3dgs/datasets/prepared/Submerged3D"
+RAW_BASE="/home/arua/projects/3dgs/datasets/raw/Submerged3D"
+OUT_BASE="/home/arua/projects/3dgs/datasets/prepared/Submerged3D"
 
-# SCENES=("Cormoran" "Isro" "Kwaj" "Tokai")
+SCENES=("Cormoran" "Isro" "Kwaj" "Tokai")
 
-# for SCENE in "${SCENES[@]}"; do
-#     echo "======================================"
-#     echo "Processing scene: $SCENE"
-#     echo "======================================"
+for SCENE in "${SCENES[@]}"; do
+    echo "======================================"
+    echo "Processing scene: $SCENE"
+    echo "======================================"
 
-#     INPUT_PATH="$RAW_BASE/$SCENE/input"
-#     OUTPUT_PATH="$OUT_BASE/$SCENE"
+    INPUT_PATH="$RAW_BASE/$SCENE/input"
+    OUTPUT_PATH="$OUT_BASE/$SCENE"
 
-#     mkdir -p "$OUTPUT_PATH"
-#     mkdir -p "$OUTPUT_PATH/sparse"
-#     mkdir -p "$OUTPUT_PATH/dense"
+    mkdir -p "$OUTPUT_PATH"
+    mkdir -p "$OUTPUT_PATH/sparse"
+    mkdir -p "$OUTPUT_PATH/dense"
 
-#     DB_PATH="$OUTPUT_PATH/database.db"
+    DB_PATH="$OUTPUT_PATH/database.db"
 
-#     echo "Step 1: Feature Extraction"
-#     colmap feature_extractor \
-#         --database_path "$DB_PATH" \
-#         --image_path "$INPUT_PATH" \
-#         --ImageReader.single_camera 1
+    echo "Step 1: Feature Extraction"
+    colmap feature_extractor \
+        --database_path "$DB_PATH" \
+        --image_path "$INPUT_PATH" \
+        --ImageReader.single_camera 1
 
-#     echo "Step 2: Feature Matching"
-#     colmap sequential_matcher \
-#         --database_path "$DB_PATH"
+    echo "Step 2: Feature Matching"
+    colmap sequential_matcher \
+        --database_path "$DB_PATH"
 
-#     echo "Step 3: Sparse Reconstruction"
-#     colmap mapper \
-#         --database_path "$DB_PATH" \
-#         --image_path "$INPUT_PATH" \
-#         --output_path "$OUTPUT_PATH/sparse"
+    echo "Step 3: Sparse Reconstruction"
+    colmap mapper \
+        --database_path "$DB_PATH" \
+        --image_path "$INPUT_PATH" \
+        --output_path "$OUTPUT_PATH/sparse"
 
-#     echo "Step 4: Image Undistortion"
-#     colmap image_undistorter \
-#         --image_path "$INPUT_PATH" \
-#         --input_path "$OUTPUT_PATH/sparse/0" \
-#         --output_path "$OUTPUT_PATH/dense" \
-#         --output_type COLMAP
+    echo "Step 4: Image Undistortion"
+    colmap image_undistorter \
+        --image_path "$INPUT_PATH" \
+        --input_path "$OUTPUT_PATH/sparse/0" \
+        --output_path "$OUTPUT_PATH/dense" \
+        --output_type COLMAP
 
-#     echo "Finished scene: $SCENE"
-# done
+    echo "Step 5: Fix folder structure for SeaSplat/3DGS"
+    DENSE_SPARSE="$OUTPUT_PATH/dense/sparse"
+    DENSE_ZERO="$DENSE_SPARSE/0"
 
-# echo "======================================"
-# echo "ALL SCENES PROCESSED"
-# echo "======================================"
+    mkdir -p "$DENSE_ZERO"
+
+    if [ -f "$DENSE_SPARSE/cameras.bin" ]; then
+        mv "$DENSE_SPARSE/cameras.bin" "$DENSE_ZERO/"
+    fi
+
+    if [ -f "$DENSE_SPARSE/images.bin" ]; then
+        mv "$DENSE_SPARSE/images.bin" "$DENSE_ZERO/"
+    fi
+
+    if [ -f "$DENSE_SPARSE/points3D.bin" ]; then
+        mv "$DENSE_SPARSE/points3D.bin" "$DENSE_ZERO/"
+    fi
+
+    echo "Finished scene: $SCENE"
+done
+
+echo "======================================"
+echo "ALL SCENES PROCESSED"
+echo "======================================"
 
 
-SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/Submerged3D"
 SCENES=("Cormoran" "Isro" "Kwaj" "Tokai")
 
 for SCENE in "${SCENES[@]}"; do
@@ -71,7 +88,7 @@ for SCENE in "${SCENES[@]}"; do
     echo "Training scene: $SCENE"
     echo "======================================"
 
-    DATASET_PATH="$SOURCE_PATH/$SCENE/dense"
+    DATASET_PATH="$OUT_BASE/$SCENE/dense"
     EXP_NAME="${SCENE}_seasplat"
 
     python train.py \
