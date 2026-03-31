@@ -14,45 +14,49 @@ module load CUDA/12.1.1
 eval "$(conda shell.bash hook)"
 conda activate seasplat
 
-SOURCE_BASE="/home/arua/projects/3dgs/datasets/raw/SeathruNeRF"
+RAW_BASE="/home/arua/projects/3dgs/datasets/raw/SeathruNeRF"
+OUT_BASE="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF"
+
 SCENES=("Curasao" "IUI3-RedSea" "JapaneseGradens-RedSea" "Panama")
 
 for SCENE in "${SCENES[@]}"; do
-    echo "======================================"
-    echo "Training scene: $SCENE"
-    echo "======================================"
+    SRC_PATH="$RAW_BASE/$SCENE"
+    DST_PATH="$OUT_BASE/$SCENE"
 
-    DATASET_PATH="$SOURCE_BASE/$SCENE"
-    EXP_NAME="${SCENE}_seasplat"
+    mkdir -p "$DST_PATH"
 
-    # Normalize image folder name for 3DGS/SeaSplat loader
-    if [ -d "$DATASET_PATH/images_wb" ]; then
-        IMG_SRC="$DATASET_PATH/images_wb"
-    elif [ -d "$DATASET_PATH/Images_wb" ]; then
-        IMG_SRC="$DATASET_PATH/Images_wb"
+    if [ -d "$SRC_PATH/images_wb" ]; then
+        IMG_PATH="$SRC_PATH/images_wb"
+    elif [ -d "$SRC_PATH/Images_wb" ]; then
+        IMG_PATH="$SRC_PATH/Images_wb"
     else
-        echo "No images_wb/Images_wb folder found for $SCENE"
+        echo "No images folder for $SCENE"
         continue
     fi
 
-    # Create a standard 'images' symlink if it doesn't exist
-    if [ ! -e "$DATASET_PATH/images" ]; then
-        ln -s "$IMG_SRC" "$DATASET_PATH/images"
-    fi
+    colmap image_undistorter \
+        --image_path "$IMG_PATH" \
+        --input_path "$SRC_PATH/sparse/0" \
+        --output_path "$DST_PATH/dense" \
+        --output_type COLMAP
 
-    # Sanity check
-    if [ ! -f "$DATASET_PATH/sparse/0/images.bin" ]; then
-        echo "Missing sparse/0/images.bin for $SCENE"
-        continue
-    fi
+    mkdir -p "$DST_PATH/dense/sparse/0"
+    for FILE in cameras.bin images.bin points3D.bin; do
+        if [ -f "$DST_PATH/dense/sparse/$FILE" ]; then
+            mv "$DST_PATH/dense/sparse/$FILE" "$DST_PATH/dense/sparse/0/"
+        fi
+    done
 
-    python train.py \
-        -s "$DATASET_PATH" \
-        --exp "$EXP_NAME" \
-        --do_seathru \
-        --seathru_from_iter 10000
-
-    echo "Finished $SCENE"
+    echo "Prepared $SCENE"
 done
 
-echo "🎉 ALL TRAININGS DONE"
+
+SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF"
+
+for SCENE in "${SCENES[@]}"; do
+    python train.py \
+        -s "$SOURCE_PATH/$SCENE/dense" \
+        --exp "${SCENE}_seasplat" \
+        --do_seathru \
+        --seathru_from_iter 10000
+done
