@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --job-name=colmap
-#SBATCH --output=logs/eiffel_tower_seasplat_%j.out
+#SBATCH --job-name=eiffeltower_colmap
+#SBATCH --output=logs/eiffel_tower_%j.out
 #SBATCH --cpus-per-task=4
 #SBATCH --gres=gpu:a100_80gb:1
 #SBATCH --time=72:00:00
