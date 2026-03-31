@@ -2,8 +2,8 @@
 #SBATCH --job-name=colmap
 #SBATCH --output=logs/eiffel_tower_seasplat_%j.out
 #SBATCH --cpus-per-task=8
-#SBATCH --gres=gpu:a30:2
-#SBATCH --mem=250G
+#SBATCH --gres=gpu:3
+#SBATCH --mem=128G
 #SBATCH --time=24:00:00
 #SBATCH --partition=acltr
 
