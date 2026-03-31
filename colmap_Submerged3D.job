@@ -2,8 +2,8 @@
 #SBATCH --job-name=submerged3d_colmap
 #SBATCH --output=logs/submerged3d_%j.out
 #SBATCH --cpus-per-task=16
-#SBATCH --gres=gpu:a30:2
-#SBATCH --partition=scavenge
+#SBATCH --gres=gpu:4
+#SBATCH --partition=acltr
 #SBATCH --time=24:00:00
 
 module purge
