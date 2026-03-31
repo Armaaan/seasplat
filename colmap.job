@@ -33,7 +33,7 @@ print(f"CUDA available: {torch.cuda.is_available()}")
 PY
 
 # Paths
-SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/"
+SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared"
 DATASET_NAME="eiffel_tower_seasplat"
 UNDISTORTED_PATH="${SOURCE_PATH}/undistorted/eiffel_tower/seasplat"
 
