@@ -6,6 +6,9 @@
 #SBATCH --time=24:00:00
 #SBATCH --partition=acltr
 
+ulimit -n 65535 || ulimit -n 4096
+echo "Open file limit: $(ulimit -n)"
+
 set -euo pipefail
 
 module purge
