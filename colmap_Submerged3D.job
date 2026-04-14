@@ -2,7 +2,7 @@
 #SBATCH --job-name=submerged3d_colmap
 #SBATCH --output=logs/submerged3d_%j.out
 #SBATCH --cpus-per-task=8
-#SBATCH --gres=gpu:3
+#SBATCH --gres=gpu:a100_40gb:4
 #SBATCH --mem=128G
 #SBATCH --partition=scavenge
 #SBATCH --time=24:00:00
