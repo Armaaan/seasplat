@@ -1,13 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=eiffeltower_colmap
-#SBATCH --output=logs/eiffel_tower_%j.out
+#SBATCH --job-name=eiffeltower_seasplat
+#SBATCH --output=logs/eiffel_tower/eiffel_tower_%j.out
 #SBATCH --cpus-per-task=4
 #SBATCH --gres=gpu:a100_80gb:1
 #SBATCH --time=72:00:00
 #SBATCH --partition=acltr
-
-ulimit -n 65535 || ulimit -n 4096
-echo "Open file limit: $(ulimit -n)"
 
 set -euo pipefail
 
@@ -15,21 +12,15 @@ module purge
 module load Anaconda3
 module load CUDA/12.1.1
 
-# FIX: Temporarily disable nounset (-u) so Conda can load without crashing
 set +u
 eval "$(conda shell.bash hook)"
 conda activate seasplat
 set -u
 
-conda tos accept --channel https://repo.anaconda.com/pkgs/main
-conda tos accept --channel https://repo.anaconda.com/pkgs/r
-
-# conda install -c conda-forge colmap -y
-
 cd /home/arua/projects/3dgs/seasplat
-mkdir -p logs
+mkdir -p logs/eiffel_tower
 
-# Sanity checks
+# Sanity check
 python - <<'PY'
 import torch
 print(f"CUDA available: {torch.cuda.is_available()}")
@@ -37,28 +28,12 @@ PY
 
 # Paths
 SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared"
+UNDISTORTED_PATH="${SOURCE_PATH}/Eiffel_Tower/subset/undistorted"
 DATASET_NAME="eiffel_tower_seasplat"
-UNDISTORTED_PATH="${SOURCE_PATH}/undistorted/eiffel_tower/seasplat"
-
-
-# echo "Running COLMAP image_undistorter..."
-# colmap image_undistorter \
-#     --image_path "${SOURCE_PATH}/${DATASET_NAME}/images" \
-#     --input_path "${SOURCE_PATH}/${DATASET_NAME}/sparse/0" \
-#     --output_path "$UNDISTORTED_PATH" \
-#     --output_type COLMAP
-
-# echo "--- Undistortion Done ---"
-
-# colmap model_converter \
-#     --input_path "${UNDISTORTED_PATH}/sparse" \
-#     --output_path "${UNDISTORTED_PATH}/sparse/0" \
-#     --output_type TXT
-
-# echo "--- All Conversions Done. Starting Training ---"
 
 echo "--- Starting Training ---"
 python train.py \
     -s "$UNDISTORTED_PATH" \
     --exp "${DATASET_NAME}" \
-    --do_seathru --seathru_from_iter 10000
+    --do_seathru \
+    --seathru_from_iter 10000 \
