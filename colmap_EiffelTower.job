@@ -2,7 +2,7 @@
 #SBATCH --job-name=eiffeltower_seasplat
 #SBATCH --output=logs/eiffel_tower/%j.out
 #SBATCH --cpus-per-task=4
-#SBATCH --gres=gpu:a100_80gb:1
+#SBATCH --gres=gpu:v100:6 
 #SBATCH --time=24:00:00
 #SBATCH --partition=acltr
 
@@ -27,8 +27,13 @@ print(f"CUDA available: {torch.cuda.is_available()}")
 PY
 
 # Paths
+# SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared"
+# UNDISTORTED_PATH="${SOURCE_PATH}/Eiffel_Tower/subset/undistorted"
+# DATASET_NAME="eiffel_tower_seasplat"
+
+# for resized version
 SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared"
-UNDISTORTED_PATH="${SOURCE_PATH}/Eiffel_Tower/subset/undistorted"
+UNDISTORTED_PATH="${SOURCE_PATH}/Eiffel_Tower/resized_subset"
 DATASET_NAME="eiffel_tower_seasplat"
 
 echo "--- Starting Training ---"
