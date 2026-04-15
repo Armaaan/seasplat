@@ -93,7 +93,7 @@ for SCENE in "${SCENES[@]}"; do
         -s "$DATASET_PATH" \
         --exp "$EXP_NAME" \
         --do_seathru \
-        --seathru_from_iter 10000
+        --seathru_from_iter 10000 \
         --port 0
 
     echo "✅ Finished $SCENE"
