@@ -2,7 +2,7 @@
 #SBATCH --job-name=eiffeltower_seasplat
 #SBATCH --output=logs/eiffel_tower/%j.out
 #SBATCH --cpus-per-task=4
-#SBATCH --gres=gpu:a30:2
+#SBATCH --gres=gpu:v100:6
 #SBATCH --time=72:00:00
 #SBATCH --partition=acltr
 
