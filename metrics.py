@@ -55,7 +55,8 @@ def readImages(renders_dir, gt_dir, fname_list=None):
         fnames = fname_list
 
     for fname in tqdm(fnames, desc="Reading image batch"):
-        img_name = fname.split('.')[0]
+        # img_name = fname.split('.')[0]
+        img_name = fname.rsplit('.', 1)[0]
         if os.path.exists(gt_dir / (img_name + ".png")):
             gt = Image.open(gt_dir / (img_name + ".png"))
         else:
