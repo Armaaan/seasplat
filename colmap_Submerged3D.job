@@ -94,6 +94,7 @@ for SCENE in "${SCENES[@]}"; do
         --exp "$EXP_NAME" \
         --do_seathru \
         --seathru_from_iter 10000
+        --port 0
 
     echo "✅ Finished $SCENE"
 done
