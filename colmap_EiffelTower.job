@@ -42,5 +42,5 @@ python train.py \
     --exp "${DATASET_NAME}" \
     --do_seathru \
     --seathru_from_iter 10000 \
-    --iterations 10000 \
+    --iterations 1000 \
     --port 0

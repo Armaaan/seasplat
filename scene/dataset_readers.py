@@ -116,7 +116,8 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder, scale_xyz=1
             assert False, "Colmap camera model not handled: only undistorted datasets (PINHOLE or SIMPLE_PINHOLE cameras) supported!"
 
         image_path = os.path.join(images_folder, os.path.basename(extr.name))
-        image_name = os.path.basename(image_path).split(".")[0]
+        # image_name = os.path.basename(image_path).split(".")[0]
+        image_name = Path(os.path.basename(image_path)).stem
         image = Image.open(image_path)
 
         depth_image_path = Path(images_folder) / "depth" / f"{os.path.basename(extr.name)}.npy"
