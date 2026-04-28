@@ -29,5 +29,14 @@ print("Torch CUDA:", torch.version.cuda)
 print("CUDA available:", torch.cuda.is_available())
 PY
 
+python3 -c "
+import os
+depth_src = '/home/arua/projects/3dgs/datasets/prepared/Eiffel_Tower/subset_50/undistorted/stereo/depth_maps'
+fname = sorted(f for f in os.listdir(depth_src) if f.endswith('.geometric.bin'))[0]
+with open(os.path.join(depth_src, fname), 'rb') as f:
+    print('First 50 bytes (hex):', f.read(50).hex())
+    f.seek(0)
+    print('First 50 bytes (raw):', f.read(50))
+"
 
-python extract_dense_depth.py
+# python extract_dense_depth.py
