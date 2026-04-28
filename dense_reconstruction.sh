@@ -9,7 +9,13 @@
 set -euo pipefail
 
 module purge
+module load Anaconda3
 module load CUDA/12.1.1
+
+set +u
+eval "$(conda shell.bash hook)"
+conda activate seasplat
+set -u
 
 WORKSPACE="/home/arua/projects/3dgs/datasets/prepared/Eiffel_Tower/subset_50/undistorted"
 
