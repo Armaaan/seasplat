@@ -1,0 +1,119 @@
+#!/bin/bash
+#SBATCH --job-name=seasplat-2070-setup
+#SBATCH --output=logs/seasplat_2070_setup_%j.out
+#SBATCH --cpus-per-task=4
+#SBATCH --gres=gpu:rtx2070:1
+#SBATCH --time=02:00:00
+#SBATCH --partition=scavenge
+#SBATCH --nodelist=desktop[1-9]
+
+set -euo pipefail
+
+mkdir -p logs
+
+echo "========================================"
+echo "Env setup started at: $(date)"
+echo "Host: $(hostname)"
+echo "Job ID: ${SLURM_JOB_ID:-no_slurm_job_id}"
+echo "========================================"
+
+# Detect CUDA version on this node
+CUDA_VER=$(nvidia-smi | grep -oP "CUDA Version: \K[0-9]+\.[0-9]+" || echo "unknown")
+echo "Detected CUDA version: $CUDA_VER"
+
+# Clean module environment
+module purge
+module load Anaconda3/2023.07-2
+
+# Pick CUDA module and PyTorch wheel based on detected version
+CUDA_MAJOR=$(echo "$CUDA_VER" | cut -d. -f1)
+CUDA_MINOR=$(echo "$CUDA_VER" | cut -d. -f2)
+
+if [ "$CUDA_MAJOR" -ge 12 ]; then
+    CUDA_MODULE="CUDA/12.1.1"
+    TORCH_INDEX="https://download.pytorch.org/whl/cu121"
+    TORCH_VER="2.1.0"
+    TORCHVISION_VER="0.16.0"
+    TORCHAUDIO_VER="2.1.0"
+elif [ "$CUDA_MAJOR" -eq 11 ] && [ "$CUDA_MINOR" -ge 8 ]; then
+    CUDA_MODULE="CUDA/11.8.0"
+    TORCH_INDEX="https://download.pytorch.org/whl/cu118"
+    TORCH_VER="2.1.0"
+    TORCHVISION_VER="0.16.0"
+    TORCHAUDIO_VER="2.1.0"
+else
+    echo "WARNING: Unknown or old CUDA ($CUDA_VER), defaulting to cu118"
+    CUDA_MODULE="CUDA/11.8.0"
+    TORCH_INDEX="https://download.pytorch.org/whl/cu118"
+    TORCH_VER="2.1.0"
+    TORCHVISION_VER="0.16.0"
+    TORCHAUDIO_VER="2.1.0"
+fi
+
+echo "Using CUDA module: $CUDA_MODULE"
+echo "Using PyTorch index: $TORCH_INDEX"
+
+module load "$CUDA_MODULE"
+
+# Init conda
+eval "$(conda shell.bash hook)"
+
+# Create fresh env (remove if exists)
+conda remove -n seasplat_2070 --all -y || true
+conda create -n seasplat_2070 python=3.8 -y
+
+conda activate seasplat_2070
+
+echo "Using Python: $(which python)"
+python --version
+
+echo "========================================"
+echo "Step 1: Install PyTorch"
+echo "========================================"
+
+pip install torch==${TORCH_VER} torchvision==${TORCHVISION_VER} torchaudio==${TORCHAUDIO_VER} \
+    --index-url "${TORCH_INDEX}"
+
+echo "Verifying torch..."
+python - <<'PY'
+import torch
+print("Torch version:", torch.__version__)
+print("Torch CUDA:", torch.version.cuda)
+print("CUDA available:", torch.cuda.is_available())
+if torch.cuda.is_available():
+    print("GPU:", torch.cuda.get_device_name(0))
+PY
+
+echo "========================================"
+echo "Step 2: Install Python requirements"
+echo "========================================"
+
+cd /home/arua/projects/3dgs/seasplat
+grep -viE '^(torch|torchvision|torchaudio)([<>=].*)?$' requirements.txt > requirements_no_torch.txt
+pip install -r requirements_no_torch.txt
+
+echo "========================================"
+echo "Step 3: Install build tools"
+echo "========================================"
+
+pip install --upgrade pip
+pip install ninja setuptools wheel
+
+echo "========================================"
+echo "Step 4: Build submodules"
+echo "========================================"
+
+cd /home/arua/projects/3dgs/seasplat
+
+cd submodules/diff-gaussian-rasterization
+pip install -e . --no-build-isolation
+
+cd ../simple-knn
+pip install -e . --no-build-isolation
+
+cd ../..
+
+echo "========================================"
+echo "Env setup finished at: $(date)"
+echo "========================================"
+echo "Activate with: conda activate seasplat_2070"
