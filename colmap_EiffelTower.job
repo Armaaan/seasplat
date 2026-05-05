@@ -41,6 +41,7 @@ python train.py \
     -s "$UNDISTORTED_PATH" \
     --exp "${DATASET_NAME}" \
     --do_seathru \
-    --seathru_from_iter 10000 \
+    --iterations 15000 \
+    --seathru_from_iter 5000 \
     --port 0 \
     --eval
