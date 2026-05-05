@@ -6,6 +6,7 @@
 #SBATCH --time=02:00:00
 #SBATCH --partition=scavenge
 
+
 set -euo pipefail
 
 mkdir -p logs
@@ -22,7 +23,7 @@ echo "Detected CUDA version: $CUDA_VER"
 
 # Clean module environment
 module purge
-module load Anaconda3/2023.07-2
+module load Anaconda3/2025.06-1
 
 # Pick CUDA module and PyTorch wheel based on detected version
 CUDA_MAJOR=$(echo "$CUDA_VER" | cut -d. -f1)
@@ -59,7 +60,7 @@ eval "$(conda shell.bash hook)"
 
 # Create fresh env (remove if exists)
 conda remove -n seasplat_2070 --all -y || true
-conda create -n seasplat_2070 python=3.8 -y
+conda create -n seasplat_2070 python=3.10 -y
 
 conda activate seasplat_2070
 
