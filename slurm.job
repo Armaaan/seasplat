@@ -2,9 +2,9 @@
 #SBATCH --job-name=seasplat-env-update
 #SBATCH --output=logs/env_update_%j.out
 #SBATCH --cpus-per-task=4
-#SBATCH --gres=gpu:rtx2070: 1
-#SBATCH --time=24:00:00
-#SBATCH --partition=scavenge
+#SBATCH --gres=gpu:a100_80gb:1
+#SBATCH --time=02:00:00
+#SBATCH --partition=acltr
 
 set -euo pipefail
 
