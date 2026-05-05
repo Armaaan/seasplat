@@ -6,8 +6,7 @@
 #SBATCH --time=02:00:00
 #SBATCH --partition=scavenge
 
-
-set -euo pipefail
+set -eo pipefail
 
 mkdir -p logs
 
@@ -29,7 +28,15 @@ module load Anaconda3/2025.06-1
 CUDA_MAJOR=$(echo "$CUDA_VER" | cut -d. -f1)
 CUDA_MINOR=$(echo "$CUDA_VER" | cut -d. -f2)
 
-if [ "$CUDA_MAJOR" -ge 12 ]; then
+if [ "$CUDA_MAJOR" -ge 12 ] && [ "$CUDA_MINOR" -ge 4 ]; then
+    # CUDA 12.4+ (covers 12.4 / 12.5 / 12.6) -> cu124 wheels
+    CUDA_MODULE="CUDA/12.6.0"
+    TORCH_INDEX="https://download.pytorch.org/whl/cu124"
+    TORCH_VER="2.5.1"
+    TORCHVISION_VER="0.20.1"
+    TORCHAUDIO_VER="2.5.1"
+elif [ "$CUDA_MAJOR" -ge 12 ]; then
+    # CUDA 12.0-12.3 -> cu121 wheels
     CUDA_MODULE="CUDA/12.1.1"
     TORCH_INDEX="https://download.pytorch.org/whl/cu121"
     TORCH_VER="2.1.0"
@@ -53,7 +60,13 @@ fi
 echo "Using CUDA module: $CUDA_MODULE"
 echo "Using PyTorch index: $TORCH_INDEX"
 
-module load "$CUDA_MODULE"
+# Load CUDA module, fall back to closest available if not found
+if ! module load "$CUDA_MODULE" 2>/dev/null; then
+    echo "WARNING: $CUDA_MODULE not found, trying closest available..."
+    CUDA_MODULE=$(module avail CUDA 2>&1 | grep -oP 'CUDA/[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
+    echo "Falling back to: $CUDA_MODULE"
+    module load "$CUDA_MODULE"
+fi
 
 # Init conda
 eval "$(conda shell.bash hook)"
