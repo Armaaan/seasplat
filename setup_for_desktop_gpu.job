@@ -5,7 +5,6 @@
 #SBATCH --gres=gpu:rtx2070:1
 #SBATCH --time=02:00:00
 #SBATCH --partition=scavenge
-#SBATCH --nodelist=desktop[1-9]
 
 set -euo pipefail
 
