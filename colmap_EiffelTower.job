@@ -33,8 +33,8 @@ PY
 
 # for resized version
 SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared"
-UNDISTORTED_PATH="${SOURCE_PATH}/Eiffel_Tower/subset_50_940x528"
-DATASET_NAME="subset_50_940x528"
+UNDISTORTED_PATH="${SOURCE_PATH}/Eiffel_Tower/subset_50_1776x1182"
+DATASET_NAME="subset_50_1776x1182"
 
 echo "--- Starting Training ---"
 python train.py \
