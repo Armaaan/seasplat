@@ -19,6 +19,17 @@ echo "========================================"
 # Clean module environment
 module purge
 
+# Discover available Anaconda/CUDA modules
+echo "Available Anaconda modules:"
+module avail Anaconda 2>&1
+
+echo "Available CUDA modules:"
+module avail CUDA 2>&1
+
+# Exit early so you can read the output and pick the right versions
+echo "Check the module names above, then update the script accordingly."
+exit 0
+
 # Load required modules
 module load Anaconda3/2023.07-2
 module load CUDA/12.1.1
