@@ -49,7 +49,7 @@ echo "========================================"
 
 # Force reinstall setuptools to ensure pkg_resources is present
 pip install --upgrade pip
-pip install --force-reinstall setuptools wheel ninja
+pip install --force-reinstall "setuptools<71" wheel ninja
 
 echo "Verifying pkg_resources..."
 python -c "import pkg_resources; print('pkg_resources: OK')"
