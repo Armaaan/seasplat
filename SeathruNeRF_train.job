@@ -1,0 +1,134 @@
+#!/bin/bash
+#SBATCH --job-name=seathruNeRF_train
+#SBATCH --output=logs/train_%j.out
+#SBATCH --error=logs/train_%j.err
+#SBATCH --cpus-per-task=4
+#SBATCH --gres=gpu:a100_80gb:1
+#SBATCH --partition=acltr
+#SBATCH --time=48:00:00
+
+echo "=========================================="
+echo "  SeaSplat Training + Evaluation"
+echo "  Started: $(date)"
+echo "=========================================="
+
+nvidia-smi
+
+module purge
+module load Anaconda3
+module load CUDA/12.1.1
+
+eval "$(conda shell.bash hook)"
+conda activate seasplat
+
+# -----------------------------------------------
+# PATHS — must match OUT_BASE from prep script
+# -----------------------------------------------
+SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF"
+OUTPUT_PATH="./output"
+
+SCENES=("Curasao" "IUI3-RedSea" "JapaneseGradens-RedSea" "Panama")
+
+mkdir -p logs
+
+# -----------------------------------------------
+# LOOP OVER SCENES — train.py --eval handles
+# train + render + metrics in one shot
+# -----------------------------------------------
+for SCENE in "${SCENES[@]}"; do
+    echo ""
+    echo "=========================================="
+    echo "  Scene: $SCENE"
+    echo "  Started: $(date)"
+    echo "=========================================="
+
+    SCENE_DATA="$SOURCE_PATH/$SCENE"
+    EXP_NAME="${SCENE}_seasplat"
+    MODEL_PATH="$OUTPUT_PATH/$EXP_NAME"
+
+    # --- Sanity check: confirm prepared data exists ---
+    if [ ! -d "$SCENE_DATA/images" ]; then
+        echo "  [ERROR] images/ not found at $SCENE_DATA — did you run 01_prepare_dataset.sh?"
+        continue
+    fi
+    if [ ! -d "$SCENE_DATA/sparse/0" ]; then
+        echo "  [ERROR] sparse/0/ not found at $SCENE_DATA — did you run 01_prepare_dataset.sh?"
+        continue
+    fi
+
+    # --- Train + Render + Metrics (all via --eval flag) ---
+    python train.py \
+        -s "$SCENE_DATA" \
+        --exp "$EXP_NAME" \
+        --do_seathru \
+        --seathru_from_iter 10000 \
+        --eval \
+        2>&1 | tee "logs/train_${SCENE}.log"
+
+    TRAIN_EXIT=${PIPESTATUS[0]}
+    if [ $TRAIN_EXIT -ne 0 ]; then
+        echo "  [ERROR] Training failed for $SCENE (exit code $TRAIN_EXIT) — skipping."
+        continue
+    fi
+
+    echo "  [OK] $SCENE complete at $(date)"
+done
+
+
+# -----------------------------------------------
+# SUMMARY — print all results.json at the end
+# -----------------------------------------------
+echo ""
+echo "=========================================="
+echo "  FINAL RESULTS SUMMARY"
+echo "  Time: $(date)"
+echo "=========================================="
+
+for SCENE in "${SCENES[@]}"; do
+    EXP_NAME="${SCENE}_seasplat"
+    MODEL_PATH="$OUTPUT_PATH/$EXP_NAME"
+
+    echo ""
+    echo "--- $SCENE ---"
+
+    if [ -f "$MODEL_PATH/results.json" ]; then
+        cat "$MODEL_PATH/results.json"
+    elif ls "$MODEL_PATH"/results_*.json 1>/dev/null 2>&1; then
+        LATEST=$(ls -t "$MODEL_PATH"/results_*.json | head -1)
+        echo "  (from $LATEST)"
+        cat "$LATEST"
+    else
+        echo "  [WARNING] No results.json found. Check logs/train_${SCENE}.log"
+    fi
+done
+
+# -----------------------------------------------
+# EXPORT summary CSV
+# -----------------------------------------------
+SUMMARY_CSV="logs/summary_metrics.csv"
+echo "scene,psnr,ssim,lpips" > "$SUMMARY_CSV"
+
+for SCENE in "${SCENES[@]}"; do
+    EXP_NAME="${SCENE}_seasplat"
+    MODEL_PATH="$OUTPUT_PATH/$EXP_NAME"
+    RESULTS="$MODEL_PATH/results.json"
+
+    if [ -f "$RESULTS" ]; then
+        PSNR=$(python3  -c "import json; d=json.load(open('$RESULTS')); v=list(d.values())[-1]; print(v.get('PSNR','N/A'))"  2>/dev/null)
+        SSIM=$(python3  -c "import json; d=json.load(open('$RESULTS')); v=list(d.values())[-1]; print(v.get('SSIM','N/A'))"  2>/dev/null)
+        LPIPS=$(python3 -c "import json; d=json.load(open('$RESULTS')); v=list(d.values())[-1]; print(v.get('LPIPS','N/A'))" 2>/dev/null)
+        echo "$SCENE,$PSNR,$SSIM,$LPIPS" >> "$SUMMARY_CSV"
+    else
+        echo "$SCENE,N/A,N/A,N/A" >> "$SUMMARY_CSV"
+    fi
+done
+
+echo ""
+echo "  Metrics CSV saved to: $SUMMARY_CSV"
+echo ""
+cat "$SUMMARY_CSV"
+
+echo ""
+echo "=========================================="
+echo "  All done. Finished: $(date)"
+echo "=========================================="

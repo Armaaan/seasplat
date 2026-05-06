@@ -1,0 +1,111 @@
+#!/bin/bash
+#SBATCH --job-name=seathruNeRF_prep
+#SBATCH --output=logs/seathruNeRF_prep_%j.out
+#SBATCH --error=logs/seathruNeRF_prep_%j.err
+#SBATCH --cpus-per-task=4
+#SBATCH --gres=gpu:a100_80gb:1
+#SBATCH --partition=acltr
+#SBATCH --time=72:00:00
+
+echo "=========================================="
+echo "  SeaThru-NeRF Dataset Preparation"
+echo "  Started: $(date)"
+echo "=========================================="
+
+module purge
+module load Anaconda3
+module load CUDA/12.1.1
+
+eval "$(conda shell.bash hook)"
+conda activate seasplat
+
+# -----------------------------------------------
+# PATHS — edit these if your layout changes
+# -----------------------------------------------
+RAW_BASE="/home/arua/projects/3dgs/datasets/raw/SeathruNeRF"
+OUT_BASE="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF"
+
+SCENES=("Curasao" "IUI3-RedSea" "JapaneseGradens-RedSea" "Panama")
+
+mkdir -p logs
+
+# -----------------------------------------------
+# LOOP OVER SCENES
+# -----------------------------------------------
+for SCENE in "${SCENES[@]}"; do
+    echo ""
+    echo "------------------------------------------"
+    echo "  Processing: $SCENE"
+    echo "  Time: $(date)"
+    echo "------------------------------------------"
+
+    SRC_PATH="$RAW_BASE/$SCENE"
+    DST_PATH="$OUT_BASE/$SCENE"
+
+    # --- Locate image folder (handles capitalisation differences) ---
+    if   [ -d "$SRC_PATH/images_wb" ];   then IMG_PATH="$SRC_PATH/images_wb"
+    elif [ -d "$SRC_PATH/Images_wb" ];   then IMG_PATH="$SRC_PATH/Images_wb"
+    elif [ -d "$SRC_PATH/images" ];      then IMG_PATH="$SRC_PATH/images"
+    else
+        echo "  [ERROR] No image folder found for $SCENE — skipping."
+        continue
+    fi
+    echo "  Image path : $IMG_PATH"
+
+    # --- Locate sparse/0 (handles colmap/ subfolder layout) ---
+    if   [ -d "$SRC_PATH/sparse/0" ];        then SPARSE_PATH="$SRC_PATH/sparse/0"
+    elif [ -d "$SRC_PATH/colmap/sparse/0" ]; then SPARSE_PATH="$SRC_PATH/colmap/sparse/0"
+    else
+        echo "  [ERROR] No sparse/0 found for $SCENE — skipping."
+        continue
+    fi
+    echo "  Sparse path: $SPARSE_PATH"
+
+    mkdir -p "$DST_PATH"
+
+    # --- Run COLMAP image_undistorter ---
+    echo "  Running colmap image_undistorter..."
+    colmap image_undistorter \
+        --image_path     "$IMG_PATH" \
+        --input_path     "$SPARSE_PATH" \
+        --output_path    "$DST_PATH" \
+        --output_type    COLMAP \
+        --max_image_size 2000
+
+    if [ $? -ne 0 ]; then
+        echo "  [ERROR] colmap image_undistorter failed for $SCENE"
+        continue
+    fi
+
+    # --- Flatten sparse/ → sparse/0/ ---
+    # image_undistorter writes files directly to sparse/
+    # SeaSplat expects them under sparse/0/
+    mkdir -p "$DST_PATH/sparse/0"
+    MOVED=0
+    for FILE in cameras.bin images.bin points3D.bin cameras.txt images.txt points3D.txt; do
+        if [ -f "$DST_PATH/sparse/$FILE" ]; then
+            mv "$DST_PATH/sparse/$FILE" "$DST_PATH/sparse/0/"
+            echo "  Moved $FILE → sparse/0/"
+            MOVED=$((MOVED + 1))
+        fi
+    done
+
+    if [ $MOVED -eq 0 ]; then
+        echo "  [INFO] No files needed moving — sparse/0/ may already be correct."
+    fi
+
+    # --- Verify final layout ---
+    echo ""
+    echo "  Final layout for $SCENE:"
+    echo "  $(ls "$DST_PATH")"
+    echo "  sparse/0 contents: $(ls "$DST_PATH/sparse/0" 2>/dev/null || echo 'MISSING')"
+    echo "  images count: $(ls "$DST_PATH/images" 2>/dev/null | wc -l) files"
+
+    echo "  [OK] $SCENE prepared successfully."
+done
+
+echo ""
+echo "=========================================="
+echo "  All scenes prepared."
+echo "  Finished: $(date)"
+echo "=========================================="
