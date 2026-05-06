@@ -3,7 +3,7 @@
 #SBATCH --output=logs/train_%j.out
 #SBATCH --error=logs/train_%j.err
 #SBATCH --cpus-per-task=4
-#SBATCH --gres=gpu:a100_80gb:1
+#SBATCH --gres=gpu:a30:1
 #SBATCH --partition=acltr
 #SBATCH --time=48:00:00
 
