@@ -1,155 +1,92 @@
 #!/bin/bash
-#SBATCH --job-name=seasplat-2070-setup
-#SBATCH --output=logs/seasplat_2070_setup_%j.out
+#SBATCH --job-name=seasplat-rtx2070-create
+#SBATCH --output=logs/seasplat_rtx2070_create_%j.out
 #SBATCH --cpus-per-task=4
 #SBATCH --gres=gpu:rtx2070:1
 #SBATCH --time=24:00:00
 #SBATCH --partition=scavenge
 
-set -eo pipefail
+set -euo pipefail
 
-mkdir -p logs
+ENV_NAME="seasplat_rtx2070"
 
 echo "========================================"
-echo "Env setup started at: $(date)"
+echo "Env creation started at: $(date)"
 echo "Host: $(hostname)"
 echo "Job ID: ${SLURM_JOB_ID:-no_slurm_job_id}"
 echo "========================================"
 
+# Clean module environment
 module purge
-module load Anaconda3/2025.06-1
 
-CUDA_MODULE="CUDA/12.1.1"
-TORCH_INDEX="https://download.pytorch.org/whl/cu121"
-TORCH_VER="2.1.0"
-TORCHVISION_VER="0.16.0"
-TORCHAUDIO_VER="2.1.0"
+# Load required modules
+module load Anaconda3/2023.07-2
+module load CUDA/12.1.1
 
-echo "Loading CUDA module: $CUDA_MODULE"
-module load "$CUDA_MODULE"
-
-echo "CUDA toolkit: $(nvcc --version | grep release)"
-echo "Driver CUDA:  $(nvidia-smi | grep -oP 'CUDA Version: \K[0-9.]+')"
-
+# Init conda
 eval "$(conda shell.bash hook)"
 
-conda remove -n seasplat_2070 --all -y || true
-conda create -n seasplat_2070 python=3.10 -y
-conda activate seasplat_2070
+echo "========================================"
+echo "Step 1: Create fresh conda environment"
+echo "========================================"
+
+# Remove only the new env if it already exists, leave seasplat untouched
+conda env remove -n "${ENV_NAME}" --yes 2>/dev/null || true
+
+# Create fresh env with Python 3.10
+conda create -n "${ENV_NAME}" python=3.10 -y
+conda activate "${ENV_NAME}"
 
 echo "Using Python: $(which python)"
+echo "Using Pip: $(which pip)"
 python --version
 
 echo "========================================"
-echo "Step 1: Install build tools FIRST"
+echo "Step 2: Install PyTorch (CUDA 12.1)"
 echo "========================================"
 
-pip install --upgrade pip setuptools wheel ninja packaging
-
-echo "========================================"
-echo "Step 2: Install PyTorch ${TORCH_VER}+cu121"
-echo "========================================"
-
-pip install \
-    torch==${TORCH_VER}+cu121 \
-    torchvision==${TORCHVISION_VER}+cu121 \
-    torchaudio==${TORCHAUDIO_VER}+cu121 \
-    --index-url "${TORCH_INDEX}"
-
-echo "Patching torch 2.1.0 broken pkg_resources import..."
-TORCH_DIR=$(python -c "import torch, os; print(os.path.dirname(torch.__file__))")
-CPP_EXT="${TORCH_DIR}/utils/cpp_extension.py"
-
-# Replace: from pkg_resources import packaging
-# With:    from packaging import version as packaging
-# (torch uses pkg_resources.packaging.version internally)
-sed -i 's/from pkg_resources import packaging/from packaging import version as packaging_version; import packaging/' \
-    "${CPP_EXT}"
-
-# Verify the patch worked
-python -c "from torch.utils import cpp_extension; print('cpp_extension patch: OK')"
+pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 \
+  --index-url https://download.pytorch.org/whl/cu121
 
 echo "Verifying torch..."
 python - <<'PY'
 import torch
 print("Torch version:", torch.__version__)
-print("Torch CUDA:   ", torch.version.cuda)
+print("Torch CUDA:", torch.version.cuda)
 print("CUDA available:", torch.cuda.is_available())
 if torch.cuda.is_available():
     print("GPU:", torch.cuda.get_device_name(0))
-else:
-    print("WARNING: CUDA not available - check module/driver mismatch")
 PY
 
 echo "========================================"
-echo "Step 3: Install Python requirements"
+echo "Step 3: Install build tools"
+echo "========================================"
+
+pip install --upgrade pip
+pip install ninja setuptools wheel
+
+echo "========================================"
+echo "Step 4: Install Python requirements"
+echo "========================================"
+
+cd /home/arua/projects/3dgs/seasplat
+grep -viE '^(torch|torchvision|torchaudio)([<>=].*)?$' requirements.txt > requirements_no_torch.txt
+pip install -r requirements_no_torch.txt
+
+echo "========================================"
+echo "Step 5: Build submodules"
 echo "========================================"
 
 cd /home/arua/projects/3dgs/seasplat
 
-# Strip torch/torchvision/torchaudio to prevent pip overriding our cu121 build
-grep -viE '^(torch|torchvision|torchaudio)([<>=!].*)?$' requirements.txt \
-    > requirements_no_torch.txt
-
-# Constrain torch so pip's resolver cannot downgrade it
-pip install -r requirements_no_torch.txt \
-    --constraint <(echo "torch==${TORCH_VER}+cu121
-torchvision==${TORCHVISION_VER}+cu121
-torchaudio==${TORCHAUDIO_VER}+cu121")
-
-echo "Verifying torch was not downgraded..."
-python - <<'PY'
-import torch
-ver = torch.__version__
-assert "2.1.0" in ver, f"TORCH DOWNGRADED! Got {ver}"
-assert "cu121" in ver, f"TORCH LOST CUDA! Got {ver}"
-print("Torch version OK:", ver)
-PY
-
-echo "Re-applying cpp_extension patch in case pip reinstalled torch..."
-TORCH_DIR=$(python -c "import torch, os; print(os.path.dirname(torch.__file__))")
-CPP_EXT="${TORCH_DIR}/utils/cpp_extension.py"
-if grep -q "from pkg_resources import packaging" "${CPP_EXT}"; then
-    sed -i 's/from pkg_resources import packaging/from packaging import version as packaging_version; import packaging/' \
-        "${CPP_EXT}"
-    echo "Patch re-applied."
-else
-    echo "Patch already in place."
-fi
-python -c "from torch.utils import cpp_extension; print('cpp_extension patch: OK')"
-
-echo "========================================"
-echo "Step 4: Build submodules"
-echo "========================================"
-
-cd /home/arua/projects/3dgs/seasplat
-
-echo "Building diff-gaussian-rasterization..."
 cd submodules/diff-gaussian-rasterization
 pip install -e . --no-build-isolation
-cd ../..
 
-echo "Building simple-knn..."
-cd submodules/simple-knn
+cd ../simple-knn
 pip install -e . --no-build-isolation
+
 cd ../..
 
-echo "Verifying submodules..."
-python - <<'PY'
-try:
-    from diff_gaussian_rasterization import GaussianRasterizationSettings
-    print("diff-gaussian-rasterization: OK")
-except Exception as e:
-    print(f"diff-gaussian-rasterization: FAILED - {e}")
-
-try:
-    from simple_knn._C import distCUDA2
-    print("simple-knn: OK")
-except Exception as e:
-    print(f"simple-knn: FAILED - {e}")
-PY
-
 echo "========================================"
-echo "Env setup finished at: $(date)"
+echo "Env '${ENV_NAME}' creation finished at: $(date)"
 echo "========================================"
-echo "Activate with: conda activate seasplat_2070"
