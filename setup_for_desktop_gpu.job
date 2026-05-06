@@ -19,19 +19,8 @@ echo "========================================"
 # Clean module environment
 module purge
 
-# Discover available Anaconda/CUDA modules
-echo "Available Anaconda modules:"
-module avail Anaconda 2>&1
-
-echo "Available CUDA modules:"
-module avail CUDA 2>&1
-
-# Exit early so you can read the output and pick the right versions
-echo "Check the module names above, then update the script accordingly."
-exit 0
-
 # Load required modules
-module load Anaconda3/2023.07-2
+module load Anaconda3/2024.02-1
 module load CUDA/12.1.1
 
 # Init conda
@@ -41,10 +30,7 @@ echo "========================================"
 echo "Step 1: Create fresh conda environment"
 echo "========================================"
 
-# Remove only the new env if it already exists, leave seasplat untouched
 conda env remove -n "${ENV_NAME}" --yes 2>/dev/null || true
-
-# Create fresh env with Python 3.10
 conda create -n "${ENV_NAME}" python=3.10 -y
 conda activate "${ENV_NAME}"
 
