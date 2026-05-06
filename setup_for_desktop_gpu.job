@@ -20,9 +20,6 @@ echo "========================================"
 module purge
 module load Anaconda3/2025.06-1
 
-# Hardcode cu121 to match CUDA/12.1.1 module available on cluster
-# nvidia-smi reports 12.6 but CUDA/12.6.0 module does not exist
-# CUDA/12.1.1 is the highest available toolkit module
 CUDA_MODULE="CUDA/12.1.1"
 TORCH_INDEX="https://download.pytorch.org/whl/cu121"
 TORCH_VER="2.1.0"
@@ -47,13 +44,22 @@ echo "Using Python: $(which python)"
 python --version
 
 echo "========================================"
-echo "Step 1: Install PyTorch cu121"
+echo "Step 1: Install build tools FIRST"
+echo "========================================"
+
+pip install --upgrade pip setuptools wheel ninja
+
+echo "Verifying pkg_resources..."
+python -c "import pkg_resources; print('pkg_resources: OK')"
+
+echo "========================================"
+echo "Step 2: Install PyTorch cu121"
 echo "========================================"
 
 pip install \
-    torch==${TORCH_VER} \
-    torchvision==${TORCHVISION_VER} \
-    torchaudio==${TORCHAUDIO_VER} \
+    torch==${TORCH_VER}+cu121 \
+    torchvision==${TORCHVISION_VER}+cu121 \
+    torchaudio==${TORCHAUDIO_VER}+cu121 \
     --index-url "${TORCH_INDEX}"
 
 echo "Verifying torch..."
@@ -69,20 +75,29 @@ else:
 PY
 
 echo "========================================"
-echo "Step 2: Install Python requirements"
+echo "Step 3: Install Python requirements"
 echo "========================================"
 
 cd /home/arua/projects/3dgs/seasplat
+
+# Strip torch/torchvision/torchaudio from requirements to prevent pip
+# from overriding the cu121 versions we just installed
 grep -viE '^(torch|torchvision|torchaudio)([<>=].*)?$' requirements.txt \
     > requirements_no_torch.txt
-pip install -r requirements_no_torch.txt
 
-echo "========================================"
-echo "Step 3: Install build tools"
-echo "========================================"
+# Install with torch pinned so pip cannot downgrade it
+pip install -r requirements_no_torch.txt \
+    --constraint <(echo "torch==${TORCH_VER}+cu121
+torchvision==${TORCHVISION_VER}+cu121
+torchaudio==${TORCHAUDIO_VER}+cu121")
 
-pip install --upgrade pip
-pip install ninja setuptools wheel
+echo "Verifying torch was not downgraded..."
+python - <<'PY'
+import torch
+assert "2.1.0" in torch.__version__, f"TORCH DOWNGRADED! Got {torch.__version__}"
+assert "cu121" in torch.__version__, f"TORCH LOST CUDA! Got {torch.__version__}"
+print("Torch version OK:", torch.__version__)
+PY
 
 echo "========================================"
 echo "Step 4: Build submodules"
