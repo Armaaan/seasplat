@@ -30,6 +30,9 @@ SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/IUI3-RedSea"
 # MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Panama/experiments/05072026/Panama_seasplat"
 # SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Panama"
 
+# MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/Eiffel_Tower/subset/subset_50_1776x1182/experiments/05072026/seasplat_experiment_1"
+# SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/Eiffel_Tower/subset/subset_50_1776x1182"
+
 
 echo "--- Running render_uw.py ---"
 python render_uw.py \
@@ -43,5 +46,5 @@ python render_uw.py \
 echo "--- Running metrics.py ---"
 python metrics.py \
     -m "$MODEL_PATH" \
-    --comparison_dir "render" \
+    --comparison_dir "with_water" \
     --skip_train
