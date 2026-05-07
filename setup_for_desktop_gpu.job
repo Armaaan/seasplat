@@ -77,17 +77,17 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
  
-# # ── Step 6: Install diff-gaussian-rasterization ───────────────────────────────
-# echo "========================================"
-# echo "Step 6: Installing diff-gaussian-rasterization"
-# echo "========================================"
-# python -m pip install submodules/diff-gaussian-rasterization
+# ── Step 6: Install diff-gaussian-rasterization ───────────────────────────────
+echo "========================================"
+echo "Step 6: Installing diff-gaussian-rasterization"
+echo "========================================"
+python -m pip install submodules/diff-gaussian-rasterization --no-build-isolation
  
 # ── Step 7: Install simple-knn ────────────────────────────────────────────────
 echo "========================================"
 echo "Step 7: Installing simple-knn"
 echo "========================================"
-python -m pip install submodules/simple-knn
+python -m pip install submodules/simple-knn --no-build-isolation
  
 # ── Final verification ────────────────────────────────────────────────────────
 echo "========================================"
