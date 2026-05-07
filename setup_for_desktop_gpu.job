@@ -1,140 +1,142 @@
 #!/bin/bash
 
-#SBATCH --job-name=logs/seasplat_install
-#SBATCH --output=logs/seasplat_install%j.out
+#SBATCH --job-name=seasplat_install
+#SBATCH --output=seasplat_install.%j.out
 #SBATCH --cpus-per-task=4
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --constraint=gpu_rtx2070
-#SBATCH --time=24:00:00
+#SBATCH --time=02:00:00
 #SBATCH --partition=scavenge
+#SBATCH --mail-type=BEGIN,FAIL,END
 
-# ── Verify GPU ────────────────────────────────────────────────────────────────
 echo "========================================"
-echo "Env update started at: $(date)"
-echo "Host: $(hostname)"
-echo "Job ID: ${SLURM_JOB_ID:-no_slurm_job_id}"
+echo "Job started on $(hostname) at $(date)"
 echo "========================================"
 
-# ── Load required modules ─────────────────────────────────────────────────────
+# ── Step 1: Load modules ──────────────────────────────────────────────────────
 echo "========================================"
 echo "Step 1: Loading modules"
 echo "========================================"
 module load CUDA/12.1.1
-module load NCCL/2.18.3-GCCcore-12.3.0-CUDA-12.1.1
 module load Anaconda3
 nvidia-smi
- 
-# ── Conda init (SLURM-safe) ───────────────────────────────────────────────────
+
+# ── Step 2: Delete existing env and create fresh one ─────────────────────────
 echo "========================================"
-echo "Step 2: Creating conda environment"
+echo "Step 2: Creating fresh conda environment"
 echo "========================================"
 eval "$(conda shell.bash hook)"
- 
+
 if conda env list | grep -q "seasplat_rtx2070"; then
-    echo "Environment seasplat_rtx2070 already exists — skipping create"
-else
-    conda create --name seasplat_rtx2070 -y python=3.10
+    echo "Removing existing seasplat_rtx2070 environment..."
+    conda env remove --name seasplat_rtx2070 -y
 fi
- 
+
+conda create --name seasplat_rtx2070 -y python=3.10
 conda activate seasplat_rtx2070
+
 echo "Python: $(which python)"
 echo "Python version: $(python --version)"
- 
-# ── Redirect pip/tmp cache away from shared /tmp ─────────────────────────────
+
+# ── Redirect cache away from shared /tmp ─────────────────────────────────────
 mkdir -p $HOME/tmp
 export TMPDIR=$HOME/tmp
 export PIP_CACHE_DIR=$HOME/tmp/pip_cache
- 
-# # ── Step 3: Install requirements.txt ─────────────────────────────────────────
-# echo "========================================"
-# echo "Step 3: Installing requirements.txt"
-# echo "========================================"
-# python -m pip install -r requirements.txt
- 
-# # ── Step 4: Install PyTorch ───────────────────────────────────────────────────
-# echo "========================================"
-# echo "Step 4: Installing PyTorch 2.1.0 (cu121)"
-# echo "========================================"
-# python -m pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 \
-#     --index-url https://download.pytorch.org/whl/cu121
- 
-# ── Step 5: Verify PyTorch ────────────────────────────────────────────────────
+
+# ── Step 3: Install PyTorch first ────────────────────────────────────────────
 echo "========================================"
-echo "Step 5: Verifying PyTorch installation"
+echo "Step 3: Installing PyTorch 2.1.0 (cu121)"
+echo "========================================"
+python -m pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 \
+    --index-url https://download.pytorch.org/whl/cu121
+
+echo "========================================"
+echo "Step 4: Verifying PyTorch + CUDA"
 echo "========================================"
 python -c "
 import torch
-print('PyTorch version:', torch.__version__)
-print('CUDA available:', torch.cuda.is_available())
+print('PyTorch version :', torch.__version__)
+print('CUDA available  :', torch.cuda.is_available())
 if torch.cuda.is_available():
-    print('GPU name:', torch.cuda.get_device_name(0))
+    print('GPU             :', torch.cuda.get_device_name(0))
 assert torch.__version__.startswith('2.1.0'), f'Wrong torch version: {torch.__version__}'
 print('Version check PASSED')
 "
 if [ $? -ne 0 ]; then
-    echo "ERROR: PyTorch version check failed. Aborting."
+    echo "ERROR: PyTorch verification failed. Aborting."
     exit 1
 fi
- 
-# ── Step 6: Set CUDA environment for building C++/CUDA extensions ─────────────
+
+# ── Step 5: Install requirements.txt ─────────────────────────────────────────
 echo "========================================"
-echo "Step 6: Setting CUDA build environment"
+echo "Step 5: Installing requirements.txt"
 echo "========================================"
- 
-# Locate CUDA from the loaded module (works regardless of exact install path)
+python -m pip install -r requirements.txt
+
+# ── Step 6: Re-pin PyTorch in case requirements.txt downgraded it ─────────────
+echo "========================================"
+echo "Step 6: Re-pinning PyTorch 2.1.0 (cu121)"
+echo "========================================"
+python -m pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 \
+    --index-url https://download.pytorch.org/whl/cu121
+
+# ── Step 7: Set CUDA build environment for submodules ────────────────────────
+echo "========================================"
+echo "Step 7: Setting CUDA build environment"
+echo "========================================"
 export CUDA_HOME=$(dirname $(dirname $(which nvcc)))
 export PATH=$CUDA_HOME/bin:$PATH
 export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
- 
-# RTX 2070 = Turing architecture = compute capability 7.5
-export TORCH_CUDA_ARCH_LIST="7.5"
- 
-# Write torch constraints file to prevent accidental downgrade during upgrade
-cat > $HOME/tmp/torch_constraints.txt << 'CONSTRAINTS'
-torch==2.1.0
-torchvision==0.16.0
-torchaudio==2.1.0
-CONSTRAINTS
- 
-# setuptools>=70 removes pkg_resources which torch's cpp_extension still needs
-# Pin to 69.5.1 which is the last version with pkg_resources included
-python -m pip install "setuptools==69.5.1" --force-reinstall -c $HOME/tmp/torch_constraints.txt
-python -m pip install wheel ninja -c $HOME/tmp/torch_constraints.txt
- 
-echo "CUDA_HOME: $CUDA_HOME"
+export TORCH_CUDA_ARCH_LIST="7.5"   # RTX 2070 = Turing = compute 7.5
+
+echo "CUDA_HOME : $CUDA_HOME"
 echo "nvcc version:"
 nvcc --version
- 
-# ── Step 7: Install diff-gaussian-rasterization ───────────────────────────────
+
+# Downgrade setuptools to 69.5.1 — setuptools>=70 removed pkg_resources
+# which is required by torch's cpp_extension.py during submodule builds
+python -m pip install "setuptools==69.5.1" --force-reinstall
+
+# Verify pkg_resources is available before attempting submodule builds
+python -c "import pkg_resources; print('pkg_resources OK:', pkg_resources.__file__)"
+if [ $? -ne 0 ]; then
+    echo "ERROR: pkg_resources missing after setuptools downgrade. Aborting."
+    exit 1
+fi
+
+# ── Step 8: Install diff-gaussian-rasterization ───────────────────────────────
 echo "========================================"
-echo "Step 7: Installing diff-gaussian-rasterization"
+echo "Step 8: Installing diff-gaussian-rasterization"
 echo "========================================"
 python -m pip install submodules/diff-gaussian-rasterization \
-    --no-build-isolation \
-    --verbose
- 
-# ── Step 8: Install simple-knn ────────────────────────────────────────────────
+    --no-build-isolation
+
+# ── Step 9: Install simple-knn ────────────────────────────────────────────────
 echo "========================================"
-echo "Step 8: Installing simple-knn"
+echo "Step 9: Installing simple-knn"
 echo "========================================"
 python -m pip install submodules/simple-knn \
-    --no-build-isolation \
-    --verbose
- 
-# ── Final verification ────────────────────────────────────────────────────────
+    --no-build-isolation
+
+# ── Step 10: Final verification ───────────────────────────────────────────────
 echo "========================================"
-echo "Step 9: Final verification"
+echo "Step 10: Final verification"
 echo "========================================"
 python -c "
 import torch
-print('Final torch version:', torch.__version__)
-print('CUDA available:', torch.cuda.is_available())
+print('PyTorch version :', torch.__version__)
+print('CUDA available  :', torch.cuda.is_available())
 if torch.cuda.is_available():
-    print('GPU:', torch.cuda.get_device_name(0))
+    print('GPU             :', torch.cuda.get_device_name(0))
+import diff_gaussian_rasterization
+print('diff_gaussian_rasterization : OK')
+import simple_knn
+print('simple_knn                  : OK')
 "
- 
+
 echo "========================================"
 echo "Installation complete at $(date)"
 echo "========================================"
+
 conda deactivate
