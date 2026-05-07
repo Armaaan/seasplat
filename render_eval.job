@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --job-name=seathruNeRF_eiffel_render_eval
-#SBATCH --output=logs/SeathruNeRF/eiffel_render_eval_%j.out
+#SBATCH --job-name=seasplat_eiffel_render_eval
+#SBATCH --output=logs/eiffel_tower/render_eval_%j.out
 #SBATCH --cpus-per-task=4
 #SBATCH --gres=gpu:a30:1
 #SBATCH --partition=scavenge
