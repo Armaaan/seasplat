@@ -18,16 +18,19 @@ cd /home/arua/projects/3dgs/seasplat
 mkdir -p logs/SeathruNeRF
 
 MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao/experiments/05072026/Curasao_seasplat"
+SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao"
 
 echo "--- Running render_uw.py ---"
 python render_uw.py \
-    -m "/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao/experiments/05072026/Curasao_seasplat" \
-    -s "/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao" \
-    --skip_train
+    -m ""$MODEL_PATH"" \
+    -s "$SOURCE_PATH" \
+    --skip_train \
+    --seathru \
+    --eval
+
 
 echo "--- Running metrics.py ---"
 python metrics.py \
     -m "$MODEL_PATH"
-
-echo "--- Results ---"
-cat "$MODEL_PATH/results.json"
+    --comparison_dir "render" \
+    --skip_train
