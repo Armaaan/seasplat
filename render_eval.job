@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --job-name=seathruNeRF_JapaneseGradens-RedSea_render_eval
-#SBATCH --output=logs/SeathruNeRF/JapaneseGradens-RedSea_render_eval_%j.out
+#SBATCH --job-name=seathruNeRF_Panama_render_eval
+#SBATCH --output=logs/SeathruNeRF/Panama_render_eval_%j.out
 #SBATCH --cpus-per-task=4
 #SBATCH --gres=gpu:a30:1
 #SBATCH --partition=scavenge
@@ -26,12 +26,12 @@ mkdir -p logs/SeathruNeRF
 # SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/IUI3-RedSea"
 
 # JapaneseGradens-RedSea
-MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/JapaneseGradens-RedSea/experiments/05072026/JapaneseGradens-RedSea_seasplat"
-SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/JapaneseGradens-RedSea"
+# MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/JapaneseGradens-RedSea/experiments/05072026/JapaneseGradens-RedSea_seasplat"
+# SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/JapaneseGradens-RedSea"
 
 # Panama
-# MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Panama/experiments/05072026/Panama_seasplat"
-# SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Panama"
+MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Panama/experiments/05072026/Panama_seasplat"
+SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Panama"
 
 # Eiffel_Tower
 # MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/Eiffel_Tower/subset/subset_50_1776x1182/experiments/05072026/seasplat_experiment_1"
