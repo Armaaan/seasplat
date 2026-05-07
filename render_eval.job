@@ -46,5 +46,5 @@ python render_uw.py \
 echo "--- Running metrics.py ---"
 python metrics.py \
     -m "$MODEL_PATH" \
-    --comparison_dir "with_water" \
+    --comparison_dir "render" \
     --skip_train
