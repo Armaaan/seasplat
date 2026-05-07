@@ -3,7 +3,8 @@
 #SBATCH --output=logs/eiffel_tower/train_%j.out
 #SBATCH --error=logs/eiffel_tower/train_%j.err
 #SBATCH --cpus-per-task=4
-#SBATCH --gres=gpu:a30:3 
+#SBATCH --gres=gpu:a30:3
+#SBATCH --nodelist=cn7
 #SBATCH --partition=acltr
 #SBATCH --time=72:00:00
 
