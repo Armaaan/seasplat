@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --job-name=seathruNeRF_Curasao_render_eval
-#SBATCH --output=logs/SeathruNeRF/Curasao_render_eval_%j.out
+#SBATCH --job-name=seathruNeRF_Eiffel_Tower_render_eval
+#SBATCH --output=logs/SeathruNeRF/Eiffel_Tower_render_eval_%j.out
 #SBATCH --cpus-per-task=4
 #SBATCH --gres=gpu:a30:1
 #SBATCH --partition=scavenge
@@ -17,8 +17,8 @@ conda activate seasplat
 cd /home/arua/projects/3dgs/seasplat
 mkdir -p logs/SeathruNeRF
 
-MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao/experiments/05072026/Curasao_seasplat"
-SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao"
+# MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao/experiments/05072026/Curasao_seasplat"
+# SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao"
 
 # MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/IUI3-RedSea/experiments/05072026/IUI3-RedSea_seasplat"
 # SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/IUI3-RedSea"
@@ -30,8 +30,8 @@ SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao"
 # MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Panama/experiments/05072026/Panama_seasplat"
 # SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Panama"
 
-# MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/Eiffel_Tower/subset/subset_50_1776x1182/experiments/05072026/seasplat_experiment_1"
-# SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/Eiffel_Tower/subset/subset_50_1776x1182"
+MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/Eiffel_Tower/subset/subset_50_1776x1182/experiments/05072026/seasplat_experiment_1"
+SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/Eiffel_Tower/subset/subset_50_1776x1182"
 
 
 echo "--- Running render_uw.py ---"
@@ -46,5 +46,5 @@ python render_uw.py \
 echo "--- Running metrics.py ---"
 python metrics.py \
     -m "$MODEL_PATH" \
-    --comparison_dir "render" \
+    --comparison_dir "with_water" \
     --skip_train
