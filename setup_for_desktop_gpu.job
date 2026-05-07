@@ -8,7 +8,6 @@
 #SBATCH --constraint=gpu_rtx2070
 #SBATCH --time=02:00:00
 #SBATCH --partition=scavenge
-#SBATCH --mail-type=BEGIN,FAIL,END
 
 echo "========================================"
 echo "Job started on $(hostname) at $(date)"
