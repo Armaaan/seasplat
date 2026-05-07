@@ -21,7 +21,8 @@ MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao/exper
 
 echo "--- Running render_uw.py ---"
 python render_uw.py \
-    -m "$MODEL_PATH" \
+    -m "/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao/experiments/05072026/Curasao_seasplat" \
+    -s "/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao" \
     --skip_train
 
 echo "--- Running metrics.py ---"
