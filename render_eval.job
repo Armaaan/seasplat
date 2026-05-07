@@ -2,7 +2,7 @@
 #SBATCH --job-name=seathruNeRF_curasao_render_eval
 #SBATCH --output=logs/SeathruNeRF/curasao_render_eval_%j.out
 #SBATCH --cpus-per-task=4
-#SBATCH --gres=gpu:a30:4
+#SBATCH --gres=gpu:a30:1
 #SBATCH --partition=acltr
 #SBATCH --time=72:00:00
 
