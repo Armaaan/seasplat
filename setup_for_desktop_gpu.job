@@ -97,8 +97,9 @@ torchvision==0.16.0
 torchaudio==2.1.0
 CONSTRAINTS
  
-# Upgrade build tools only — constrained so torch is never touched
-python -m pip install --upgrade setuptools wheel ninja -c $HOME/tmp/torch_constraints.txt
+# setuptools>=70 removes pkg_resources which torch's cpp_extension still needs
+# Pin to 69.5.1 which is the last version with pkg_resources included
+python -m pip install "setuptools==69.5.1" wheel ninja pkg_resources -c $HOME/tmp/torch_constraints.txt
  
 echo "CUDA_HOME: $CUDA_HOME"
 echo "nvcc version:"
