@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=seasplat_install
-#SBATCH --output=seasplat_install.%j.out
+#SBATCH --output=logs/seasplat_install.%j.out
 #SBATCH --cpus-per-task=4
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
