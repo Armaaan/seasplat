@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --job-name=seasplat_eiffel_render_eval
-#SBATCH --output=logs/eiffel_tower/render_eval_%j.out
+#SBATCH --job-name=seathruNeRF_curasao_render_eval
+#SBATCH --output=logs/SeathruNeRF/curasao_render_eval_%j.out
 #SBATCH --cpus-per-task=4
 #SBATCH --gres=gpu:a30:1
 #SBATCH --partition=scavenge
@@ -17,11 +17,21 @@ conda activate seasplat
 cd /home/arua/projects/3dgs/seasplat
 mkdir -p logs/SeathruNeRF
 
+MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao/experiments/05072026/Curasao_seasplat"
+SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao"
+
+# MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/IUI3-RedSea/experiments/05072026/Curasao_seasplat"
+# SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/IUI3-RedSea"
+
+
+# MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/JapaneseGradens-RedSea/experiments/05072026/Curasao_seasplat"
+# SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/JapaneseGradens-RedSea"
+
+# MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Panama/experiments/05072026/Curasao_seasplat"
+# SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Panama"
+
 # MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao/experiments/05072026/Curasao_seasplat"
 # SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/SeathruNeRF/Curasao"
-
-MODEL_PATH="/home/arua/projects/3dgs/datasets/prepared/Eiffel_Tower/subset/subset_50_1776x1182/experiments/05072026/seasplat_experiment_1"
-SOURCE_PATH="/home/arua/projects/3dgs/datasets/prepared/Eiffel_Tower/subset/subset_50_1776x1182"
 
 echo "--- Running render_uw.py ---"
 python render_uw.py \
