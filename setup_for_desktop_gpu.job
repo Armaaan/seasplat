@@ -76,14 +76,16 @@ echo "Step 5: Build submodules"
 echo "========================================"
 
 pip install --upgrade pip
-pip install ninja setuptools wheel
+pip install ninja "setuptools<70.0.0" wheel
 
 cd /home/arua/projects/3dgs/seasplat
 
 cd submodules/diff-gaussian-rasterization
+rm -rf build/ dist/ *.egg-info
 pip install -e . --no-build-isolation
 
 cd ../simple-knn
+rm -rf build/ dist/ *.egg-info
 pip install -e . --no-build-isolation
 
 cd ../..
