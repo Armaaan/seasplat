@@ -58,8 +58,7 @@ python train.py \
     --exp "$EXP_NAME" \
     --do_seathru \
     --seathru_from_iter 10000 \
-    --eval \
-    2>&1 | tee "logs/eiffel_tower/train_${EXP_NAME}.log"
+    --eval
 
 TRAIN_EXIT=${PIPESTATUS[0]}
 if [ $TRAIN_EXIT -ne 0 ]; then
