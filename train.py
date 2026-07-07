@@ -127,6 +127,17 @@ def training(model_params, opt_params, pipe_params, testing_iterations, saving_i
         bg_init[2] = 0.8 # make the b channel high to start
         bg_init[1] = 0.25 # make the g channel high to start
         bg_init[0] = 0.05 # make the r channel low to start
+
+        # BECOMES:
+        if opt_params.dark_binf_init:   # NEW: only runs if flag passed
+            bg_init[2] = 0.01
+            bg_init[1] = 0.01
+            bg_init[0] = 0.01
+        else:                            # EXISTING values unchanged
+            bg_init[2] = 0.8
+            bg_init[1] = 0.25
+            bg_init[0] = 0.05
+
         learned_bg = torch.nn.Parameter(inverse_sigmoid(bg_init.requires_grad_(True)))
         bg_optimizer = torch.optim.Adam([learned_bg], lr=opt_params.bg_lr)
 
@@ -268,6 +279,14 @@ def training(model_params, opt_params, pipe_params, testing_iterations, saving_i
             # estimate backscatter
             backscatter = bs_model(depth_image_batch)
             backscatter_depth_detached = bs_model(depth_image_batch.detach())
+
+            # BECOMES:
+            if opt_params.disable_backscatter:   # NEW: only runs if flag passed
+                backscatter = torch.zeros_like(image_batch)
+                backscatter_depth_detached = torch.zeros_like(image_batch)
+            else:                                 # EXISTING code unchanged
+                backscatter = bs_model(depth_image_batch)
+                backscatter_depth_detached = bs_model(depth_image_batch.detach())
 
             # combined image
             underwater_image = torch.clamp(direct + backscatter, 0.0, 1.0)

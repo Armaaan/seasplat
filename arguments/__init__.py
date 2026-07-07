@@ -175,6 +175,8 @@ class OptimizationParams(ParamGroup):
         self.use_at_v2 = False                # use attenuate net v2 (drops some terms)
         self.use_at_v3 = True                # use attenuate net v3 implx (simplest)
         self.disable_attenuation = False      # simplified model that only accounts for backscatter
+        self.disable_backscatter = False      # disable backscatter, attenuation only
+        self.dark_binf_init = False           # near-black B_inf init for deep-sea scenes
 
         self.seathru_from_iter = 9_000_000
         self.update_bs_at_interval = 100      # every num gs updates, update the bs and at models
