@@ -1,0 +1,38 @@
+#!/bin/bash
+#SBATCH --job-name=eiffel_seasplat_fix
+#SBATCH --output=logs/eiffel_150/seasplat_fix_%j.out
+#SBATCH --cpus-per-task=8
+#SBATCH --gres=gpu:a30:1
+#SBATCH --time=24:00:00
+#SBATCH --partition=acltr
+
+set -euo pipefail
+module purge
+module load Anaconda3
+module load CUDA/12.1.1
+set +u
+eval "$(conda shell.bash hook)"
+conda activate seasplat
+set -u
+
+cd /home/arua/projects/3dgs/seasplat
+mkdir -p logs/eiffel_150
+
+python - <<'PY'
+import torch
+print(f"CUDA available: {torch.cuda.is_available()}")
+PY
+
+echo "--- SeaSplat FIX on Eiffel Tower 150 ---"
+echo "Fix 1: dark B_inf init"
+echo "Fix 2: backscatter disabled"
+python train.py \
+    -s /home/arua/projects/3dgs/datasets/prepared/Eiffel_Tower_150 \
+    --exp eiffel_150_seasplat_fix \
+    --do_seathru \
+    --seathru_from_iter 10000 \
+    --iterations 30000 \
+    --dark_binf_init \
+    --disable_backscatter \
+    --port 0 \
+    --eval
